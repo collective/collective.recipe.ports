@@ -11,7 +11,6 @@ def ports():
 class Recipe(object):
     def __init__(self, buildout, name, options):
         self.buildout, self.name, self.options = buildout, name, options
-        port = ports()
 
         # If there is no ports.cfg file specified, create one in the current working dir.
         if not 'config' in self.options:
@@ -26,6 +25,14 @@ class Recipe(object):
 
             self.options['config'] = filename
 
+        # Use configparser to read in the ports
+        filename = self.options['config'] 
+        cp = ConfigParser.RawConfigParser()
+        cp.read(filename)
+
+        # Fire up the port generator
+        port = ports()
+
         # This is nasty. Maybe we can get buildout to give us better info?
         # If the section does not exist, create it then assign a port. 
         sections = []
@@ -34,37 +41,23 @@ class Recipe(object):
                 self.buildout[section]
                 sections.append(section)
             except:
-                assign = port.next()
-                self.options[section] = str(assign)
-                config = open(filename, 'ab')
-                config.write("%s = %s\n" % (section, assign))
-                config.close()
-
-        # Now use ConfigParser to read in the ports
-#        filename = self.options['config'] 
-#        cp = ConfigParser.RawConfigParser()
-#        cp.read(filename)
-
-        # At this point we can check cp.items() for in-use ports
-        # and start assigning ports.
-#        filename = self.options['config'] 
-#        port = ports()
-#        items = cp.items(self.name) 
-#
-#        if items != []:
-#            exists = [i[1] for i in items]
-#            for next in exists:
-#                if port.next() != next:
-#                    config = open(filename, 'ab')
-#                    assign = str(port.next())
-#                    config.write("%s%s = %s\n" % ("thing", assign, assign))
-#                    config.close()
-#                    break
-#        else:
-#            config = open(filename, 'ab')
-#            assign = str(port.next())
-#            config.write("%s%s = %s\n" % ("thing", assign, assign))
-#            config.close()
+                # At this point we can check cp.items() for in-use ports
+                # and start assigning ports.
+                parameters = cp.items(self.name)
+                if parameters != []:
+                    values = [i[1] for i in parameters]
+                    assign = str(port.next())
+                    if assign not in values:
+                        self.options[section] = str(assign)
+                        config = open(filename, 'ab')
+                        config.write("%s = %s\n" % (section, assign))
+                        config.close()
+                else:
+                    assign = str(port.next())
+                    self.options[section] = str(assign)
+                    config = open(filename, 'ab')
+                    config.write("%s = %s\n" % (section, assign))
+                    config.close()
 
     def install(self):
         return tuple()
