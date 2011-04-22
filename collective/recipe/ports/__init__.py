@@ -1,10 +1,6 @@
 import ConfigParser
 import os
 
-default = """[ports]
-instance1 = 8080
-"""
-
 class Recipe(object):
 
     def __init__(self, buildout, name, options):
@@ -16,7 +12,7 @@ class Recipe(object):
         if not 'config' in self.options:
             filename = os.path.join(self.buildout['buildout']['directory'], 'ports.cfg')
             config = open(filename, 'w')
-            config.write(default)
+            config.write("[ports]\n")
             config.close()
 
         # Now use configparser to read in the ports
