@@ -39,11 +39,9 @@ class Recipe(object):
 
         # This is nasty. Maybe we can get buildout to give us better info?
         # If the section does not exist, create it then assign a port.
-        sections = []
         for section in self.buildout.keys():
             try:
                 self.buildout[section]
-                sections.append(section)
             except:
                 # At this point we can check cp.items() for in-use ports
                 # and start assigning ports.
